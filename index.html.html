@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estoque Pro | Restaurante</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f4f6f3;--card:#fff;--ink:#1d2b25;--muted:#718078;--green:#244b3c;--green2:#dcebe2;--line:#e4eae5;--red:#b64237;--amber:#a66b13;--shadow:0 8px 24px #233b2d0b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,Arial,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px;background:var(--green);color:white;font-weight:650}button.secondary{background:#edf2ee;color:var(--green)}button.danger{background:#fae9e7;color:var(--red)}button:disabled{opacity:.5;cursor:not-allowed}
+header{background:var(--green);color:white;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:2}
+.brand{font-size:18px;font-weight:800;letter-spacing:.06em}.brand small{display:block;font-size:10px;letter-spacing:.16em;color:#c6d9ce}
+#userline{font-size:12px;color:#d7e6dc}
+.layout{display:flex;max-width:1400px;margin:auto;min-height:calc(100vh - 65px)}
+nav{width:225px;padding:20px 14px;border-right:1px solid var(--line);flex-shrink:0}
+nav button{display:block;width:100%;text-align:left;margin:4px 0;background:transparent;color:#53645b;font-weight:600}
+nav button.active,nav button:hover{background:var(--green2);color:var(--green)}
+main{padding:26px;width:100%;min-width:0}.pagehead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+h1{font-size:25px;margin:0 0 4px}h2{font-size:17px;margin:0 0 14px}.sub{color:var(--muted);font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.card,.panel{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:17px;box-shadow:var(--shadow)}
+.kpi{font-size:27px;font-weight:800;margin-top:5px}.kpi-label{font-size:12px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{margin-bottom:16px}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);vertical-align:middle}th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.pill{display:inline-block;padding:4px 8px;border-radius:20px;background:var(--green2);color:var(--green);font-size:11px;font-weight:700}.pill.low{background:#fff0d9;color:var(--amber)}.pill.out{background:#fae9e7;color:var(--red)}
+.actions{display:flex;gap:7px;flex-wrap:wrap}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+input,select,textarea{border:1px solid #d9e1db;border-radius:9px;padding:10px;background:white;color:var(--ink);width:100%;min-width:0}
+label{font-size:12px;color:#526259;font-weight:650;display:block;margin-bottom:5px}.field{margin-bottom:12px}
+.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.modal{position:fixed;inset:0;background:#14251db0;display:none;align-items:center;justify-content:center;padding:16px;z-index:5}.modal.open{display:flex}.modalbox{background:white;border-radius:16px;padding:22px;width:min(560px,100%);max-height:90vh;overflow:auto}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.empty{padding:24px;text-align:center;color:var(--muted)}.hidden{display:none!important}
+.auth{max-width:420px;margin:9vh auto;padding:24px}.auth h1{margin-bottom:8px}.notice{padding:11px 13px;border-radius:10px;background:#fff4dc;color:#80530d;font-size:12px;margin:12px 0}
+.barline{height:7px;border-radius:8px;background:#edf1ee;overflow:hidden;margin-top:6px}.barline span{display:block;height:100%;background:#4e8068}
+#toast{position:fixed;bottom:18px;right:18px;background:#1d3027;color:white;padding:12px 16px;border-radius:10px;display:none;z-index:8}
+@media(max-width:850px){.layout{display:block}nav{width:100%;display:flex;overflow:auto;padding:8px;border-right:0;border-bottom:1px solid var(--line)}nav button{white-space:nowrap;width:auto;margin:0 3px}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:17px}.grid2{grid-template-columns:1fr}}
+@media(max-width:480px){.cards{grid-template-columns:1fr 1fr;gap:8px}.card{padding:12px}.kpi{font-size:22px}.formgrid{grid-template-columns:1fr}header{padding:13px}}
+</style>
+</head>
+<body>
+<section id="auth" class="auth card">
+  <div class="brand" style="color:var(--green)">ESTOQUE PRO<small style="color:var(--muted)">GESTÃO DE RESTAURANTE</small></div>
+  <h1 style="margin-top:22px">Acesse sua conta</h1><p class="sub">Entre com seu usuário individual. Os dois usuários compartilham o mesmo estoque.</p>
+  <div class="field"><label>E-mail</label><input id="email" type="email" autocomplete="username" placeholder="seu@email.com"></div>
+  <div class="field"><label>Senha</label><input id="password" type="password" autocomplete="current-password" placeholder="Sua senha"></div>
+  <button id="loginBtn" style="width:100%">Entrar</button>
+  <div class="notice">O administrador cria os dois acessos no painel de autenticação do Supabase. Não existe cadastro público aberto.</div>
+  <p class="sub" id="authMsg"></p>
+</section>
+<div id="app" class="hidden">
+<header><div class="brand">ESTOQUE PRO<small>GESTÃO INTELIGENTE DE RESTAURANTE</small></div><div style="text-align:right"><div id="userline"></div><button class="secondary" id="logoutBtn" style="margin-top:5px;padding:6px 10px">Sair</button></div></header>
+<div class="layout">
+<nav id="nav">
+<button class="active" data-page="dashboard">▦ Visão geral</button>
+<button data-page="ingredients">▤ Insumos</button>
+<button data-page="recipes">♨ Fichas técnicas</button>
+<button data-page="production">＋ Produção</button>
+<button data-page="finished">▣ Prontos / buffet</button>
+<button data-page="sales">↗ Saídas de alimentos</button>
+<button data-page="rankings">⌁ Rankings</button>
+<button data-page="alerts">⚑ Compras e alertas</button>
+<button data-page="history">◷ Auditoria</button>
+</nav>
+<main id="main"></main>
+</div>
+</div>
+<div class="modal" id="modal"><div class="modalbox"><div class="modalhead"><h2 id="modalTitle">Cadastro</h2><button class="secondary" id="closeModal">Fechar</button></div><div id="modalBody"></div></div></div>
+<div id="toast"></div>
+<script>
+const SUPABASE_URL = "https://ywwixrzbegzkjmlbgowln.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_E9GdN2d_9ECAHRxXnA4nmg_daa3bB2z";
+let sb=null,user=null,ingredients=[],recipes=[],recipeItems=[],batches=[],sales=[],movements=[],auditLogs=[],page="dashboard";
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n||0).toLocaleString("pt-BR",{maximumFractionDigits:3});
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function toast(s){$("toast").textContent=s;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",2800)}
+function num(v){return Number(v||0)}
+function openModal(title,html){$("modalTitle").textContent=title;$("modalBody").innerHTML=html;$("modal").classList.add("open")}
+function closeModal(){$("modal").classList.remove("open")}
+$("closeModal").onclick=closeModal;
+async function init(){
+ if(SUPABASE_URL.startsWith("COLE_")||SUPABASE_ANON_KEY.startsWith("COLE_")){$("authMsg").textContent="Configure a URL e a chave pública do Supabase no arquivo index.html.";return}
+ sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+ const {data}=await sb.auth.getSession();if(data.session){user=data.session.user;await enter()}
+ sb.auth.onAuthStateChange((_event,session)=>{if(session){user=session.user;enter()}else{user=null;$("app").classList.add("hidden");$("auth").classList.remove("hidden")}});
+}
+$("loginBtn").onclick=async()=>{const {error}=await sb.auth.signInWithPassword({email:$("email").value,password:$("password").value});$("authMsg").textContent=error?error.message:"Acessando…"};
+$("logoutBtn").onclick=()=>sb.auth.signOut();
+async function enter(){$("auth").classList.add("hidden");$("app").classList.remove("hidden");$("userline").textContent=user.email;await loadAll();render()}
+async function query(table,order="created_at"){let q=sb.from(table).select("*");if(order)q=q.order(order,{ascending:false});const {data,error}=await q;if(error)throw error;return data||[]}
+async function loadAll(){
+ try{[ingredients,recipes,recipeItems,batches,sales,movements,auditLogs]=await Promise.all([query("ingredients","name"),query("recipes","name"),query("recipe_ingredients",null),query("production_batches"),query("food_outflows"),query("stock_movements"),query("audit_log")])}
+ catch(e){toast("Erro ao carregar: "+e.message)}
+}
+async function audit(action,entity,entityId,details={}){await sb.from("audit_log").insert({user_id:user.id,actor_email:user.email,action,entity,entity_id:entityId,details})}
+async function save(table,obj,action,entity){const {data,error}=await sb.from(table).insert(obj).select().single();if(error)throw error;await audit(action,entity,data.id,obj);await loadAll();render();toast("Registro salvo.");return data}
+function setPage(p){page=p;document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));render()}
+$("nav").onclick=e=>{const b=e.target.closest("button[data-page]");if(b)setPage(b.dataset.page)};
+function heading(title,sub,button=""){return `<div class="pagehead"><div><h1>${title}</h1><div class="sub">${sub}</div></div>${button}</div>`}
+function kpi(label,value,sub=""){return `<div class="card"><div class="kpi-label">${label}</div><div class="kpi">${value}</div><div class="sub">${sub}</div></div>`}
+function lowItems(){return ingredients.filter(i=>num(i.quantity)<=num(i.minimum_quantity))}
+function render(){
+ const m=$("main");
+ if(page==="dashboard"){
+  const low=lowItems(), total=ingredients.length, value=ingredients.reduce((a,i)=>a+num(i.quantity)*num(i.unit_cost),0);
+  const top=[...ingredients].sort((a,b)=>num(b.total_used)-num(a.total_used)).slice(0,5);
+  m.innerHTML=heading("Visão geral","Acompanhamento do estoque e da operação")+
+  `<div class="cards">${kpi("Insumos cadastrados",total)}${kpi("Itens para repor",low.length,"No mínimo ou abaixo do mínimo")}${kpi("Valor estimado em estoque","R$ "+fmt(value))}${kpi("Alimentos cadastrados",recipes.length)}</div>
+  <div class="grid2"><section class="panel"><h2>⚑ Atenção para compra</h2>${low.length?low.slice(0,6).map(i=>`<p><b>${esc(i.name)}</b> <span class="pill ${num(i.quantity)===0?"out":"low"}">${fmt(i.quantity)} ${esc(i.unit)}</span></p>`).join(""):'<div class="empty">Nenhum alerta de estoque mínimo.</div>'}<button class="secondary" onclick="setPage('alerts')">Ver lista de compras</button></section>
+  <section class="panel"><h2>Insumos mais utilizados</h2>${top.length?top.map((i,n)=>`<div style="margin:10px 0"><div style="display:flex;justify-content:space-between"><span>${n+1}. ${esc(i.name)}</span><b>${fmt(i.total_used)} ${esc(i.unit)}</b></div><div class="barline"><span style="width:${Math.max(2,100*num(i.total_used)/(num(top[0].total_used)||1))}%"></span></div></div>`).join(""):'<div class="empty">Registre produções para gerar o ranking.</div>'}</section></div>`;
+ }
+ if(page==="ingredients"){
+  m.innerHTML=heading("Insumos","Cadastre ingredientes, quantidades, unidades e níveis de reposição.",'<button onclick="ingredientForm()">＋ Novo insumo</button>')+
+  `<div class="panel"><div class="toolbar"><input id="searchIng" placeholder="Buscar insumo…" oninput="filterTable()" style="max-width:280px"><span class="sub">${ingredients.length} cadastrados</span></div><div style="overflow:auto"><table id="ingTable"><thead><tr><th>Insumo</th><th>Categoria</th><th>Saldo</th><th>Mínimo</th><th>Custo unit.</th><th>Status</th><th></th></tr></thead><tbody>${ingredients.map(i=>`<tr><td><b>${esc(i.name)}</b></td><td>${esc(i.category||"—")}</td><td>${fmt(i.quantity)} ${esc(i.unit)}</td><td>${fmt(i.minimum_quantity)} ${esc(i.unit)}</td><td>R$ ${fmt(i.unit_cost)}</td><td>${num(i.quantity)<=num(i.minimum_quantity)?'<span class="pill low">Repor</span>':'<span class="pill">Normal</span>'}</td><td><button class="secondary" onclick="movementForm('${i.id}')">Movimentar</button> <button class="secondary" onclick="deleteIngredient('${i.id}')">Excluir</button></td></tr>`).join("")}</tbody></table></div></div>`;
+ }
+ if(page==="recipes"){
+  m.innerHTML=heading("Fichas técnicas","Defina os ingredientes e as quantidades consumidas por unidade produzida.",'<button onclick="recipeForm()">＋ Nova ficha</button>')+
+  `<div class="panel">${recipes.length?`<table><thead><tr><th>Alimento</th><th>Rendimento por receita</th><th>Ingredientes</th></tr></thead><tbody>${recipes.map(r=>`<tr><td><b>${esc(r.name)}</b></td><td>${fmt(r.yield_quantity)} ${esc(r.yield_unit)}</td><td>${recipeItems.filter(x=>x.recipe_id===r.id).length}</td></tr>`).join("")}</tbody></table>`:'<div class="empty">Nenhuma ficha técnica cadastrada.</div>'}</div>`;
+ }
+ if(page==="production"){
+  m.innerHTML=heading("Registrar produção","Escolha se o alimento será preparado na hora, produzido em lote ou destinado ao buffet.",'<button onclick="productionForm()">＋ Registrar produção</button>')+
+  `<div class="panel"><table><thead><tr><th>Data</th><th>Alimento</th><th>Modalidade</th><th>Produzido</th><th>Saldo pronto</th><th>Responsável</th></tr></thead><tbody>${batches.map(b=>`<tr><td>${new Date(b.created_at).toLocaleString("pt-BR")}</td><td>${esc(recipes.find(r=>r.id===b.recipe_id)?.name||"—")}</td><td>${b.production_mode==="made_to_order"?"Na hora":b.production_mode==="buffet"?"Buffet/exposição":"Lote/armazenamento"}</td><td>${fmt(b.quantity)}</td><td>${fmt(b.remaining_quantity||0)}</td><td>${esc(b.actor_email||"")}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">Sem produção registrada.</td></tr>'}</tbody></table></div>`;
+ }
+ if(page==="finished"){
+  const ready=batches.filter(b=>num(b.remaining_quantity)>0);
+  m.innerHTML=heading("Produtos prontos / buffet","Saldo de alimentos preparados, por lote e modalidade.")+
+  `<div class="cards">${kpi("Lotes disponíveis",ready.length)}${kpi("Quantidade em estoque",fmt(ready.reduce((a,b)=>a+num(b.remaining_quantity),0)))}${kpi("Lotes de buffet",ready.filter(b=>b.production_mode==="buffet").length)}${kpi("Lotes armazenados",ready.filter(b=>b.production_mode==="batch").length)}</div><div class="panel"><table><thead><tr><th>Alimento</th><th>Modalidade</th><th>Produzido</th><th>Disponível</th><th>Validade</th><th>Responsável</th></tr></thead><tbody>${ready.map(b=>`<tr><td><b>${esc(recipes.find(r=>r.id===b.recipe_id)?.name||"—")}</b></td><td>${b.production_mode==="buffet"?"Buffet/exposição":"Lote armazenado"}</td><td>${fmt(b.quantity)}</td><td><b>${fmt(b.remaining_quantity)}</b></td><td>${b.expiry_date?new Date(b.expiry_date+"T12:00:00").toLocaleDateString("pt-BR"):"—"}</td><td>${esc(b.actor_email||"")}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">Nenhum alimento pronto em estoque.</td></tr>'}</tbody></table><p class="sub">Os lotes são consumidos por ordem de produção (FIFO) ao registrar as saídas.</p></div>`;
+ }
+ if(page==="sales"){
+  m.innerHTML=heading("Saídas de alimentos","Registre vendas, consumo interno ou outras saídas dos alimentos produzidos.",'<button onclick="saleForm()">＋ Registrar saída</button>')+
+  `<div class="panel"><table><thead><tr><th>Data</th><th>Alimento</th><th>Tipo</th><th>Quantidade</th><th>Responsável</th></tr></thead><tbody>${sales.map(s=>`<tr><td>${new Date(s.created_at).toLocaleString("pt-BR")}</td><td>${esc(recipes.find(r=>r.id===s.recipe_id)?.name||"—")}</td><td>${esc(s.outflow_type)}</td><td>${fmt(s.quantity)}</td><td>${esc(s.actor_email||"")}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">Sem saídas registradas.</td></tr>'}</tbody></table></div>`;
+ }
+ if(page==="rankings"){
+  const ing=[...ingredients].sort((a,b)=>num(b.total_used)-num(a.total_used));
+  const food=[...recipes].map(r=>({...r,outs:sales.filter(s=>s.recipe_id===r.id&&!String(s.outflow_type).toLowerCase().includes("perda")).reduce((a,s)=>a+num(s.quantity),0),waste:sales.filter(s=>s.recipe_id===r.id&&String(s.outflow_type).toLowerCase().includes("perda")).reduce((a,s)=>a+num(s.quantity),0),made:batches.filter(b=>b.recipe_id===r.id).reduce((a,b)=>a+num(b.quantity),0)})).sort((a,b)=>b.outs-a.outs);
+  m.innerHTML=heading("Rankings de consumo","Classificação baseada nos registros feitos no sistema.")+
+  `<div class="grid2"><section class="panel"><h2>Insumos: maior consumo</h2>${ing.map((i,n)=>`<p>${n+1}. <b>${esc(i.name)}</b> — ${fmt(i.total_used)} ${esc(i.unit)}</p>`).join("")||'<div class="empty">Sem dados.</div>'}</section><section class="panel"><h2>Alimentos: maior saída</h2>${food.map((f,n)=>`<p>${n+1}. <b>${esc(f.name)}</b> — ${fmt(f.outs)} consumidos/vendidos <span class="sub">(produção: ${fmt(f.made)}; perdas: ${fmt(f.waste)})</span></p>`).join("")||'<div class="empty">Sem dados.</div>'}</section></div>`;
+ }
+ if(page==="alerts"){
+  const low=lowItems();
+  m.innerHTML=heading("Compras e alertas","Itens no estoque mínimo ou abaixo dele.")+
+  `<div class="panel"><h2>Lista de reposição</h2>${low.length?`<table><thead><tr><th>Insumo</th><th>Disponível</th><th>Estoque ideal</th><th>Sugestão de compra</th></tr></thead><tbody>${low.map(i=>`<tr><td><b>${esc(i.name)}</b></td><td>${fmt(i.quantity)} ${esc(i.unit)}</td><td>${fmt(i.target_quantity)} ${esc(i.unit)}</td><td><b>${fmt(Math.max(0,num(i.target_quantity)-num(i.quantity)))} ${esc(i.unit)}</b></td></tr>`).join("")}</tbody></table>`:'<div class="empty">Tudo certo! Nenhum insumo precisa de reposição.</div>'}</div>`;
+ }
+ if(page==="history"){
+  m.innerHTML=heading("Auditoria de alterações","Histórico de quem fez cada movimentação, cadastro e operação.")+
+  `<div class="panel"><table><thead><tr><th>Data</th><th>Usuário</th><th>Ação</th><th>Área</th><th>Detalhes</th></tr></thead><tbody>${auditLogs.map(x=>`<tr><td>${new Date(x.created_at).toLocaleString("pt-BR")}</td><td>${esc(x.actor_email||"")}</td><td>${esc(x.action)}</td><td>${esc(x.entity)}</td><td>${esc(JSON.stringify(x.details||{}))}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">Nenhuma alteração registrada.</td></tr>'}</tbody></table></div>`;
+ }
+}
+window.setPage=setPage;
+window.filterTable=()=>{const q=$("searchIng").value.toLowerCase();document.querySelectorAll("#ingTable tbody tr").forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?"":"none")};
+window.ingredientForm=()=>openModal("Cadastrar insumo",`<form id="f"><div class="formgrid"><div class="field"><label>Nome</label><input name="name" required></div><div class="field"><label>Categoria</label><input name="category" placeholder="Carnes, laticínios…"></div><div class="field"><label>Unidade</label><select name="unit"><option>kg</option><option>g</option><option>l</option><option>ml</option><option>un</option><option>pct</option><option>cx</option></select></div><div class="field"><label>Quantidade inicial</label><input name="quantity" type="number" step="0.001" min="0" value="0"></div><div class="field"><label>Estoque mínimo</label><input name="minimum_quantity" type="number" step="0.001" min="0" value="0"></div><div class="field"><label>Estoque ideal</label><input name="target_quantity" type="number" step="0.001" min="0" value="0"></div><div class="field"><label>Custo por unidade</label><input name="unit_cost" type="number" step="0.01" min="0" value="0"></div><div class="field"><label>Fornecedor</label><input name="supplier"></div></div><button>Salvar insumo</button></form>`);
+$("modalBody").addEventListener("submit",async e=>{if(e.target.id==="f"){e.preventDefault();const o=Object.fromEntries(new FormData(e.target));try{const d=await save("ingredients",{...o,quantity:num(o.quantity),minimum_quantity:num(o.minimum_quantity),target_quantity:num(o.target_quantity),unit_cost:num(o.unit_cost),created_by:user.id},"create","ingredient");if(d.quantity>0)await sb.from("stock_movements").insert({ingredient_id:d.id,movement_type:"entrada inicial",quantity:d.quantity,actor_id:user.id,actor_email:user.email,notes:"Saldo inicial"});closeModal();await loadAll();render()}catch(x){toast(x.message)}}});
+window.deleteIngredient=async id=>{
+ const i=ingredients.find(x=>x.id===id);if(!i)return;
+ const usedInRecipe=recipeItems.some(x=>x.ingredient_id===id);
+ const hasMovements=movements.some(x=>x.ingredient_id===id);
+ if(usedInRecipe||hasMovements){toast("Não é possível excluir: este insumo já possui ficha técnica ou movimentações. Mantenha o histórico e deixe de utilizá-lo.");return}
+ if(!confirm(`Excluir o insumo "${i.name}"? Esta ação não pode ser desfeita.`))return;
+ try{
+  await audit("delete","ingredient",id,{name:i.name});
+  const {error}=await sb.from("ingredients").delete().eq("id",id);
+  if(error)throw error;
+  await loadAll();render();toast("Insumo excluído.");
+ }catch(e){toast("Não foi possível excluir: "+e.message)}
+};
+window.movementForm=id=>{const i=ingredients.find(x=>x.id===id);openModal("Movimentar: "+i.name,`<form id="moveForm"><div class="field"><label>Tipo de movimentação</label><select name="movement_type"><option value="entrada">Entrada / compra</option><option value="saida">Saída / ajuste</option><option value="perda">Perda / desperdício</option></select></div><div class="field"><label>Quantidade (${esc(i.unit)})</label><input name="quantity" type="number" min="0.001" step="0.001" required></div><div class="field"><label>Observação</label><input name="notes"></div><button>Confirmar movimentação</button></form>`);$("moveForm").onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target)),q=num(f.quantity),delta=f.movement_type==="entrada"?q:-q;if(num(i.quantity)+delta<0){toast("Saldo insuficiente.");return}try{const {error}=await sb.from("ingredients").update({quantity:num(i.quantity)+delta}).eq("id",id);if(error)throw error;await sb.from("stock_movements").insert({ingredient_id:id,movement_type:f.movement_type,quantity:q,actor_id:user.id,actor_email:user.email,notes:f.notes});await audit("movement","ingredient",id,f);closeModal();await loadAll();render();toast("Estoque atualizado.")}catch(x){toast(x.message)}}};
+window.recipeForm=()=>openModal("Nova ficha técnica",`<form id="recipeForm"><div class="field"><label>Nome do alimento</label><input name="name" required></div><div class="formgrid"><div class="field"><label>Rendimento da receita</label><input name="yield_quantity" type="number" min=".001" step=".001" value="1"></div><div class="field"><label>Unidade de rendimento</label><input name="yield_unit" value="porção" required></div></div><div id="recipeLines"></div><button type="button" class="secondary" id="addLine">＋ Ingrediente</button> <button>Salvar ficha</button></form>`);
+$("modalBody").addEventListener("click",e=>{if(e.target.id==="addLine"){const d=document.createElement("div");d.className="formgrid recipeLine";d.innerHTML=`<div class="field"><label>Insumo</label><select class="ri">${ingredients.map(i=>`<option value="${i.id}">${esc(i.name)} (${esc(i.unit)})</option>`).join("")}</select></div><div class="field"><label>Quantidade por receita</label><input class="rq" type="number" min=".001" step=".001" required></div>`;$("recipeLines").appendChild(d)}});
+$("modalBody").addEventListener("submit",async e=>{if(e.target.id==="recipeForm"){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));try{const r=await save("recipes",{name:f.name,yield_quantity:num(f.yield_quantity),yield_unit:f.yield_unit,created_by:user.id},"create","recipe");for(const line of document.querySelectorAll(".recipeLine")){const iid=line.querySelector(".ri").value,q=num(line.querySelector(".rq").value);if(iid&&q)await sb.from("recipe_ingredients").insert({recipe_id:r.id,ingredient_id:iid,quantity:q})}closeModal();await loadAll();render()}catch(x){toast(x.message)}}});
+window.productionForm=()=>openModal("Registrar produção",`<form id="prodForm"><div class="field"><label>Alimento</label><select name="recipe_id" required>${recipes.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join("")}</select></div><div class="field"><label>Modalidade</label><select name="production_mode"><option value="made_to_order">Preparo na hora (baixa insumos e registra saída imediata)</option><option value="batch">Produção antecipada / armazenamento (gera estoque de pronto)</option><option value="buffet">Produção para buffet / exposição (gera saldo disponível)</option></select></div><div class="field"><label>Quantidade produzida</label><input name="quantity" type="number" min=".001" step=".001" required></div><div class="field"><label>Validade do lote (opcional)</label><input name="expiry_date" type="date"></div><div class="field"><label>Observação</label><input name="notes"></div><button>Registrar produção e baixar insumos</button></form>`);
+$("modalBody").addEventListener("submit",async e=>{if(e.target.id==="prodForm"){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));try{const {data,error}=await sb.rpc("register_production",{p_recipe_id:f.recipe_id,p_quantity:num(f.quantity),p_mode:f.production_mode,p_expiry_date:f.expiry_date||null,p_notes:f.notes||null});if(error)throw error;closeModal();await loadAll();render();toast("Produção registrada; estoque atualizado com segurança.")}catch(x){toast(x.message)}}});
+window.saleForm=()=>openModal("Registrar saída de alimento pronto",`<form id="saleForm"><div class="field"><label>Alimento</label><select name="recipe_id">${recipes.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join("")}</select></div><div class="formgrid"><div class="field"><label>Tipo de saída</label><select name="outflow_type"><option>Venda</option><option>Consumo interno</option><option>Doação</option><option>Perda / descarte</option><option>Consumo do buffet</option></select></div><div class="field"><label>Quantidade</label><input name="quantity" type="number" min=".001" step=".001" required></div></div><div class="field"><label>Observação</label><input name="notes"></div><button>Baixar do estoque de prontos</button></form>`);
+$("modalBody").addEventListener("submit",async e=>{if(e.target.id==="saleForm"){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));try{const {error}=await sb.rpc("register_food_outflow",{p_recipe_id:f.recipe_id,p_quantity:num(f.quantity),p_type:f.outflow_type,p_notes:f.notes||null});if(error)throw error;closeModal();await loadAll();render();toast("Saída registrada; saldo de produtos prontos atualizado.")}catch(x){toast(x.message)}}});
+init();
+</script>
+</body></html>
