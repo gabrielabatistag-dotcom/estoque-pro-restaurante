@@ -66,9 +66,8 @@ label{font-size:12px;color:#526259;font-weight:650;display:block;margin-bottom:5
 <div class="modal" id="modal"><div class="modalbox"><div class="modalhead"><h2 id="modalTitle">Cadastro</h2><button class="secondary" id="closeModal">Fechar</button></div><div id="modalBody"></div></div></div>
 <div id="toast"></div>
 <script>
-const SUPABASE_URL = https://ywwixrzbegzkjmlbgowln.supabase.co
-const SUPABASE_ANON_KEY = - use a chave sb_publishable_ que você me enviou anteriormente.
-Não use a chave service_role.
+const SUPABASE_URL = "https://ywwixrzbegzkjmlbgowln.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_E9GdN2d_9ECAHRxXnA4nmg_daa3bB2z";
 let sb=null,user=null,ingredients=[],recipes=[],recipeItems=[],batches=[],sales=[],movements=[],auditLogs=[],page="dashboard";
 const $=id=>document.getElementById(id);
 const fmt=n=>Number(n||0).toLocaleString("pt-BR",{maximumFractionDigits:3});
